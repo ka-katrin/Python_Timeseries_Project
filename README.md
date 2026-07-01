@@ -15,10 +15,11 @@ Same with oil and holidays. The stores data was given, but I didn't need it. If 
 skip steps 1 and 2, download the cleaned versions and start with step 3. 
 _______________________________________________________________________________________________________________
 ## 3. EDA and statistical models -- statistical_models.ipynb
-After loading the data and looking at it, splitting in train and test sets, three statistical models were used to
-forecast: ARIMA, SARIMA and Prophet. With S/ARIMA I first programmed a function (similar to GridSearch) to find
-the best hyperparameters before I used AUTO ARIMA to compare both. Prophet has no Hyperparameters to edit - it
-finds the best for the data itself, or changing would change the model type.
+After loading the data and looking at it, splitting in train and test sets (at a specific time - change it if you 
+must), three statistical models were used to forecast: ARIMA, SARIMA and Prophet. With S/ARIMA I first programmed 
+a function (similar to GridSearch) to find the best hyperparameters before I used AUTO ARIMA to compare both. If 
+you use different data, I advise you to try out different hyperparameters. Prophet has no Hyperparameters to edit 
+- it finds the best for the data itself, or changing would change the model type.
 I tracked the metrics inside the notebook via the variable 'model_evaluation' and outside with mlflow.
 _______________________________________________________________________________________________________________
 ## 4. feature engineering -- feature_engineering_models.ipynb
