@@ -3,10 +3,9 @@
 import streamlit as st
 import mlflow
 import pandas as pd
-import numpy as np
 from darts.models import ARIMA
 
-# zum laufen lassen im Terminal: streamlit run Projekt/Streamlit_model.py   #your path here or just the filename
+# to run enter in terminal: streamlit run Projekt/Streamlit_model.py   #your path here or just the filename
 
 st.title('🚀 Searching the best Model!')
 st.write('Here will be some metrics to see! But first, I want you to guess the **:rainbow[best model]**.')
@@ -29,7 +28,7 @@ for run_id in to_delete["run_id"]:
 ####
 
 
-st.write(df_runs[['tags.mlflow.runName']].sort_values('tags.mlflow.runName', ascending=True))
+st.write(df_runs[['tags.mlflow.runName']].sort_values('tags.mlflow.runName', ascending=True)) #here are the models I used
 st.write('This is the data, that I want to predict:')
 
 #### loading data, and visualize
@@ -52,19 +51,16 @@ st.line_chart(data, x='date',y='unit_sales',x_label='Date', y_label='Unit Sales'
 
 st.write('Which one do you think is the winner?')
 model_names = df_runs['tags.mlflow.runName'].sort_values().tolist()
-best_model=''
-for name in model_names:
-    if st.checkbox(name):
-        st.write(f"{name} chosen.. let's see")
-        best_model=name
+best_model='' # create variable for later use
+for name in model_names: #for every model one checkbox
+    if st.checkbox(name): #for the checked checkbox:
+        st.write(f"You chose {name}.. let's see if it's right")
+        best_model=name #save for later to answer the given question
 
-#winner = st.text_input('Enter your guess (number of the model):')
-#if winner:
-#    st.write("let's see..")
 st.write("We've got four metrics: Mean absolute error, Mean squared error, R squared and max error.")
 st.write("I'll give you a hint: The forecast of the models look like this:")
 
-#### loading model, creating forecast and visualize
+#### loading models, creating forecasts and visualize
 #linear regression
 run_id = df_runs[['run_id','metrics.mae']].sort_values('metrics.mae', ascending=True).iloc[0]['run_id'] #best model for mae
 # Load the model
@@ -91,7 +87,6 @@ local_path = mlflow.artifacts.download_artifacts(
     artifact_path="model_sarima"
 )
 loaded_sarima = ARIMA.load(local_path)
-
 
 # ARIMA self optimized
 run_id = df_runs[df_runs['tags.mlflow.runName'] == 'ARIMA self optimized']['run_id'].iloc[0]
@@ -174,6 +169,7 @@ def iterative_forecast(model, train_df, n_future_days):
         history.loc[next_date] = yhat
 
     return pd.DataFrame(forecasts)
+
 #predictions
 pred_linear = iterative_forecast(loaded_linear, train, len(test))
 pred_prophet = loaded_prophet.make_future_dataframe(periods=len(test))
@@ -189,7 +185,7 @@ pred_xgb = iterative_forecast(loaded_xgb, train, len(test))
 # toggle and things to click at, choosing the model to show
 all_models = df_runs['tags.mlflow.runName'].tolist()
 with st.container(border=True):
-    Models = st.multiselect("Models", all_models, default='Random Forest')
+    Models = st.multiselect("Models", all_models, default='Random Forest') #only one pre-selected, otherwise its a mess
 
 #DF with all data - name of the columns = name of the model, to later visualize only the selected
 predictions = pd.concat([
@@ -206,7 +202,7 @@ predictions = pd.concat([
 ], axis=1)
 predictions.columns = ['date', 'Prophet', 'Auto (S)ARIMA optimized', 'SARIMA self optimized',
                         'ARIMA self optimized', 'Linear Regression', 'Random Forest Opt',
-                        'Random Forest', 'XGBoost Opt', 'XGBoost']
+                        'Random Forest', 'XGBoost Opt', 'XGBoost'] #names are exactly like in tags.mlflow.runName
 
 
 # visualize: in predictions is all the predictions from every model, y=Model ensures that the selected Models are shown
@@ -218,8 +214,9 @@ st.line_chart(predictions, x='date',y=Models,x_label='Date', y_label='Unit Sales
 st.title("Make your Guess, don't scroll down and peek!")
 st.divider()
 st.divider()
-st.divider()
+st.divider()# three, so accidentally peeking is harder...
 st.write("Here are the Results!")
+#always show the three best at every score
 st.write("Best Mean absolute Error")
 st.write(df_runs[['tags.mlflow.runName', 'metrics.mae', 'metrics.mse', 'metrics.r2','metrics.max_error']].sort_values('metrics.mae', ascending=True).head(3))
 st.write("Best Mean squared Error")
@@ -229,11 +226,11 @@ st.write(df_runs[['tags.mlflow.runName', 'metrics.mae', 'metrics.mse', 'metrics.
 st.write("Best Max Error")
 st.write(df_runs[['tags.mlflow.runName', 'metrics.mae', 'metrics.mse', 'metrics.r2','metrics.max_error']].sort_values('metrics.max_error', ascending=True).head(3))
 
-st.title("The best model in nearly all metrics is **:rainbow[Linear Regression]**")
+st.title("The best model in nearly all metrics is **:rainbow[Linear Regression]**") #make it fancy
 st.write("See how it matches the Data:")
 
 pred_linear['Prediction']=pred_linear['unit_sales'].reset_index(drop=True)
-data_forecast=pd.concat([test.reset_index(drop=True), pred_linear['Prediction']], axis=1)
+data_forecast=pd.concat([test.reset_index(drop=True), pred_linear['Prediction']], axis=1) #need all data in one DF
 st.line_chart(data_forecast,x= 'date', x_label='Date', y=['Prediction','unit_sales'], y_label='Unit Sales')
 
 
@@ -243,6 +240,6 @@ st.write(f'You chose {best_model}')
 if best_model == 'Linear Regression':
     st.write('Congratulations!')
     if st.button("Send balloons!"):
-        st.balloons()
+        st.balloons()           #a little bit fun!
     else:
         st.write('Better luck next time!')
